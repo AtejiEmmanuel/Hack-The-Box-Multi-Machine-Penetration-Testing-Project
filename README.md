@@ -1,116 +1,133 @@
-# Hacking Techniques and Countermeasures  
-Hack The Box – Multi-Machine Penetration Testing Project
+# Hacking Techniques and Countermeasures: Penetration Testing Report
+
+A structured penetration testing report covering the full ethical hacking lifecycle across three target machines on the [Hack The Box](https://www.hackthebox.com/) platform. This project was completed as part of a cybersecurity assessment and demonstrates hands-on application of industry-standard tools and methodology.
+
+---
 
 ## Overview
-This project documents a full end-to-end penetration testing engagement conducted against three vulnerable Windows-based machines on the Hack The Box platform. The objective was to demonstrate ethical hacking methodology, vulnerability identification, exploitation, and post-exploitation privilege escalation aligned with real-world penetration testing workflows.
 
-## Skills Demonstrated
-- Penetration testing methodology (Reconnaissance, Scanning, Exploitation, Post-Exploitation)
-- Network and service enumeration
-- Vulnerability assessment using CVSS
-- Exploitation using Metasploit
-- Windows privilege escalation
-- Risk analysis and remediation planning
-- Technical and management reporting
+This project documents the reconnaissance, scanning, exploitation, and post-exploitation phases carried out against three Windows-based machines in an isolated lab environment. Each machine presented a unique attack surface, and the report details the exact steps taken to identify vulnerabilities, exploit them, and escalate privileges to NT AUTHORITY\SYSTEM level.
 
-## Tools and Technologies
-| Phase | Tools |
-|-----|------|
-| Reconnaissance | Nmap, Web Browser |
-| Scanning | Nmap, Nessus |
-| Exploitation | Metasploit, msfvenom |
-| Post-Exploitation | Meterpreter |
-| Platform | Hack The Box (PwnBox) |
+An additional section explores the use of **Generative AI to automate the reconnaissance phase** of penetration testing, discussing its advantages, limitations, and practical recommendations.
+
+---
 
 ## Methodology
-The engagement followed a standard ethical hacking lifecycle:
-1. Active reconnaissance to identify live hosts and exposed services  
-2. Scanning for open ports, services, and known vulnerabilities  
-3. Exploitation of identified weaknesses  
-4. Post-exploitation privilege escalation  
-5. Reporting and remediation recommendations  
 
-## Target Machines and Findings
+The penetration testing process followed a four-phase approach:
 
-### Machine 1 – IIS 7.5 and Anonymous FTP
-Key Findings:
-- Anonymous FTP access enabled
-- Outdated Microsoft IIS 7.5
-- FTP command injection vulnerability (MS12-073)
+```
+Reconnaissance → Scanning → Exploitation → Post-Exploitation
+```
 
-Exploitation Summary:
-- Uploaded an ASPX reverse shell via anonymous FTP
-- Executed payload through the web server to obtain a Meterpreter session
-- Privilege escalation to NT AUTHORITY\SYSTEM using ms10_015_kitrap0d
+| Phase | Description |
+|---|---|
+| **Reconnaissance** | Active information gathering using Nmap to identify hosts, open ports, and running services |
+| **Scanning** | Port scanning and vulnerability scanning using Nmap scripts and Nessus |
+| **Exploitation** | Using Metasploit and msfvenom to exploit discovered vulnerabilities and gain initial access |
+| **Post-Exploitation** | Privilege escalation to SYSTEM level using local exploit suggester modules |
 
-#### Screenshots:
-<p align="center">
-  Nmap Scan Results <br/>
-  <img src="https://i.imghippo.com/files/ceS2068UbA.png"/>
-  <img src="https://i.imghippo.com/files/NmY8720pIo.png"/>
-</p>
+---
 
-<p align="center">
- FTP upload and Meterpreter session <br/>
-  <img src="https://i.imghippo.com/files/EXz7509dRY.png"/>
-</p>
+## Machines Tested
 
-### Machine 2 – Windows XP and SMB Vulnerabilities
-Key Findings:
-- Unsupported Windows XP operating system
-- SMB vulnerabilities including MS08-067 and MS09-001
-- SMB NULL session authentication enabled
+### Machine 01290095 (`10.129.192.180`)
+- **OS:** Windows 7 (6.1 Build 7600)
+- **Open Ports:** 21 (FTP), 80 (HTTP)
+- **Key Vulnerability:** Anonymous FTP login enabled on Microsoft IIS 7.5; CVE-2015-1635 (HTTP.sys RCE)
+- **Exploit:** Uploaded a malicious `.aspx` reverse shell via anonymous FTP, triggered via the web browser, caught with Metasploit's `multi/handler`
+- **Privilege Escalation:** `ms10_015_kitrap0d` - escalated to `NT AUTHORITY\SYSTEM`
 
-Exploitation Summary:
-- Exploited MS08-067 using Metasploit
-- Achieved SYSTEM-level access via Meterpreter
+---
 
-Screenshots:
-- SMB vulnerability detection
-- Successful exploitation
+### Machine 01280094 (`10.129.192.201`)
+- **OS:** Windows XP SP3
+- **Open Ports:** 135 (RPC), 139 (NetBIOS), 445 (SMB)
+- **Key Vulnerabilities:** MS08-067 (RPC RCE), MS17-010 (EternalBlue), SMB NULL session authentication, SMB signing not enforced
+- **Exploit:** Exploited MS08-067 via Metasploit's `exploit/windows/smb/ms08_067_netapi` to obtain a Meterpreter shell
+- **Privilege Escalation:** Already `NT AUTHORITY\SYSTEM` on initial access
 
-### Machine 3 – IIS 6.0 on Windows Server 2003
-Key Findings:
-- Unsupported Windows Server 2003
-- Outdated IIS 6.0 with WebDAV enabled
-- Remote buffer overflow vulnerability
+---
 
-Exploitation Summary:
-- Exploited IIS WebDAV buffer overflow vulnerability
-- Migrated process to SYSTEM privileges
-- Achieved full system compromise
+### Machine 012B0096 (`10.129.192.204`)
+- **OS:** Windows Server 2003 SP2
+- **Open Ports:** 80 (HTTP / WebDAV)
+- **Key Vulnerabilities:** IIS 6.0 WebDAV PROPFIND buffer overflow (CVE-2017-7269), unsupported OS and web server
+- **Exploit:** Metasploit module `exploit/windows/iis/iis_webdav_scstoragepathfromurl` to obtain Meterpreter shell, followed by process migration to NT AUTHORITY context
+- **Privilege Escalation:** `ms10_015_kitrap0d` - escalated to `NT AUTHORITY\SYSTEM`
 
-Screenshots:
-- Searchsploit results
-- Privilege escalation confirmation
+---
 
-## Impact Analysis
-If deployed in a production environment, these vulnerabilities could result in:
-- Full system compromise
-- Data breaches and ransomware attacks
-- Regulatory non-compliance
-- Financial and reputational damage
+## Tools Used
 
-## Recommendations
-- Upgrade unsupported operating systems to supported versions
-- Migrate legacy IIS installations to IIS 10 or later
-- Apply all critical Microsoft security patches
-- Disable SMBv1 and enforce SMB signing
-- Remove anonymous access to network services
+| Tool | Purpose |
+|---|---|
+| **Nmap** | Active reconnaissance, port scanning, vulnerability detection (`--script vuln`) |
+| **Nessus** | Vulnerability scanning with CVSS scoring |
+| **Metasploit / msfconsole** | Exploitation framework, payload delivery, post-exploitation |
+| **msfvenom** | Payload generation (`.aspx` reverse shell) |
+| **Meterpreter** | Post-exploitation shell: privilege escalation, system enumeration |
+| **Firefox** | Navigating web services discovered during scanning |
+| **FTP client** | Uploading payloads to anonymous FTP services |
 
-## Research Extension – Generative AI in Reconnaissance
-This project also examined how generative artificial intelligence can enhance the reconnaissance phase of penetration testing by automating large-scale port scanning, service enumeration, and adaptive reconnaissance strategies. A hybrid approach combining AI-assisted automation with human oversight is recommended.
+---
 
-## Screenshots
-All supporting screenshots are stored in the screenshots directory and referenced throughout this document.
+## Vulnerability Summary
 
-## Author
-Emmanuel Ateji  
-MSc Cyber Security  
-Sheffield, United Kingdom  
+| Machine | Vulnerability | Severity | CVSS |
+|---|---|---|---|
+| 01290095 | Unsupported Web Server (IIS 7.5) | Critical | 10.0 |
+| 01290095 | MS12-073 FTP Command Injection | Medium | 5.3 |
+| 01280094 | MS08-067 RPC RCE | Critical | 9.8 |
+| 01280094 | Windows XP End of Life | Critical | 10.0 |
+| 01280094 | MS17-010 (EternalBlue/WannaCry) | High | 8.1 |
+| 01280094 | SMB NULL Session Authentication | High | 7.3 |
+| 01280094 | SMB Signing Not Required | Medium | 5.3 |
+| 012B0096 | IIS 6.0 WebDAV PROPFIND RCE (CVE-2017-7269) | Critical | 9.8 |
+| 012B0096 | Windows Server 2003 End of Life | Critical | 10.0 |
+| 012B0096 | Microsoft IIS 6.0 End of Life | Critical | 10.0 |
 
-GitHub: https://github.com/AtejiEmmanuel  
-LinkedIn: https://linkedin.com/in/emmanuelateji
+---
 
-## Full Report
-The complete academic report is included in this repository for reference and deeper technical detail.
+## Key Recommendations
+
+- **Upgrade operating systems:** Replace Windows XP and Server 2003 with a supported OS (Windows 10 / Server 2019 or later)
+- **Update IIS:** Migrate from IIS 6.0 / 7.5 to IIS 10, which resolves hundreds of known vulnerabilities
+- **Disable anonymous FTP:** Remove unauthenticated access to file services
+- **Patch critical CVEs:** Apply MS08-067, MS17-010, and MS12-073 patches immediately
+- **Enforce SMB signing:** Enable `Microsoft network server: Digitally sign communications (always)` via Group Policy
+- **Disable SMBv1:** SMBv1 is a deprecated protocol exploited by WannaCry and EternalBlue attacks
+- **Restrict SMB NULL sessions:** Set `RestrictAnonymous = 1` in the registry to prevent unauthenticated enumeration
+- **Disable WebDAV:** If not required, disable WebDAV on IIS to eliminate the PROPFIND attack surface
+
+---
+
+## Generative AI & Reconnaissance
+
+The report includes a research section examining how **Generative AI** (GPT-style language models, GANs, reinforcement learning) can automate the reconnaissance phase of penetration testing.
+
+**Key takeaways:**
+- AI enables broader port/service coverage and tireless, systematic scanning at scale
+- Reinforcement learning agents can discover novel scanning strategies beyond human imagination
+- GAN-generated payloads can mutate syntax to evade signature detection
+- Risks include destabilisation of production systems, abuse by malicious actors, and harder-to-audit reasoning
+- A **hybrid approach** (AI for scale, humans for validation and creativity) is recommended
+
+---
+
+## Disclaimer
+
+> This project was carried out entirely within the **Hack The Box** lab environment using their **PwnBox** platform. All testing was performed on machines explicitly provided for this purpose. No real-world systems were targeted. This report is intended purely for **educational purposes** and to demonstrate ethical hacking methodology in a controlled setting.
+
+---
+
+## References
+
+Key references include:
+- Engebretson, P. (2013). *The Basics of Hacking and Penetration Testing*. Elsevier.
+- Microsoft Security Bulletins: MS08-067, MS09-001, MS12-073, MS17-010
+- Tenable Nessus Plugin documentation
+- CrowdStrike (2023). *Generative AI and its impact in cybersecurity*
+- George, S., Douglas, T., & William, E. (2021). *Using AI/ML for Reconnaissance in Network Penetration Testing*. Academic Conferences International.
+
+Full reference list available in the report document.
