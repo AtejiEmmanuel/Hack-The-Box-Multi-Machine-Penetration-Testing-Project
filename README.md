@@ -130,4 +130,4 @@ Key references include:
 - CrowdStrike (2023). *Generative AI and its impact in cybersecurity*
 - George, S., Douglas, T., & William, E. (2021). *Using AI/ML for Reconnaissance in Network Penetration Testing*. Academic Conferences International.
 
-Full reference list available in the (report document)[https://github.com/AtejiEmmanuel/Hack-The-Box-Multi-Machine-Penetration-Testing-Project/blob/main/33043543_Emmanuel_HTC_2023.docx].
+Full reference list available in the [report document](https://github.com/AtejiEmmanuel/Hack-The-Box-Multi-Machine-Penetration-Testing-Project/blob/main/33043543_Emmanuel_HTC_2023.docx).
